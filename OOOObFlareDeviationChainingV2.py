@@ -110,40 +110,6 @@ result = result[['SCADASITE',
                  'PRIORNUMBEROFDAYS'
                  ]]
 
-# d = result[result['SITE_NAME'] == 'Allen 44-36 CTB']
-# d.head(10)
-
-# QA/QC to see if any differences
-# fac_list = []
-# facnum_list = []
-# for fac in df['ViewX Flare Pilot or Thermocouple Temperature Tag'].unique():
-#     numfac = len(df[df['ViewX Flare Pilot or Thermocouple Temperature Tag'] ==fac])
-#     print(fac, '===', numfac)
-#     fac_list.append(fac)
-#     facnum_list.append(numfac)
-    
-# chained_fac_list = []
-# chained_facnum_list = []
-# for fac in result['ViewX Flare Pilot or Thermocouple Temperature Tag'].unique():
-#     numfac = len(df[df['ViewX Flare Pilot or Thermocouple Temperature Tag'] ==fac])
-#     print(fac, '===', numfac)
-#     chained_fac_list.append(fac)
-#     chained_facnum_list.append(numfac)
-
-# print(len(fac_list))
-# print(len(facnum_list))
-# print(len(chained_fac_list))
-# print(len(chained_facnum_list))
-
-# #set(fac_list) - set(chained_fac_list)
-# #set(chained_fac_list) - set(fac_list))
-
-# fac_list_df = pd.DataFrame(fac_list)
-# chained_fac_list_df = pd.DataFrame(chained_fac_list)
-
-# fac_list_df.to_csv(r"Downloads/fac_list.csv")
-# chained_fac_list_df.to_csv(r"Downloads/chained_fac_list.csv")
-
 
 # Group rows of chained events if separated by 15 minutes or less 
 gap_time = 120 #define time between chained cold events that acceptable to group
@@ -154,19 +120,6 @@ def group_of_groups(group):
     time_threshold = pd.Timedelta(minutes=gap_time)
     group['group_of_groups'] = (group['time_diff'] > time_threshold).cumsum()
     return group
-
-# # Sort the DataFrame by facility and start_time
-# df1 = result.sort_values(by=['SCADA_ID', 'start_time'])
-
-# # Calculate the time difference between the current start_time and the previous end_time within each facility group
-# df1['time_diff'] = df1['start_time'] - df1.groupby('SCADA_ID')['end_time'].shift()
-
-# # Define the 15-minute threshold
-# time_threshold = pd.Timedelta(minutes=15)
-
-# # Create a new group identifier whenever the time difference is greater than the threshold
-# df1['group_of_groups'] = (df1['time_diff'] > time_threshold).cumsum()
-# df1.columns
 
 df2 = result.groupby('SCADA_ID', group_keys=False).apply(group_of_groups)
 
@@ -209,11 +162,6 @@ result2.columns = ['SCADA_ID',
                    'time_diff'
                    ]
 
-# Add duration information
-# result2['Duration'] = (result2['end_time'] - result2['start_time'])
-# result2['Duration_hrs'] = (result2['Duration'].dt.components['minutes'] +
-#                           result2['Duration'].dt.components['hours']*60 +
-#                           result2['Duration'].dt.components['days']*60*24)/60
 
 # Reorder columns
 result2 = result2[['SCADASITE',
@@ -232,14 +180,6 @@ result2 = result2[['SCADASITE',
                    'SITE_NAME',
                    'PRIORNUMBEROFDAYS'
                    ]]
-# result = result.drop(columns='group') # Drop the group column
-
-#result['SITE_NAME'].unique()
-# d = result2[result2['SITE_NAME'] == 'Allen 44-36 CTB']
-# d.head(10)
-# len(result2)
-# Convert to csv
-#result2.to_csv(r"Downloads/OOOOb Cold Deviations_python.csv")
 
 
 #Pull in additional information to help make this sheet more usable
@@ -282,14 +222,6 @@ bobo_old = bobo_old.drop_duplicates(subset=['SCADA_ID',
                                             'Date Deviation Began'], 
                                     keep='first')
 
-
-
-# Merge in Bobo's work - commented out because found more complete sheet
-# result4 = pd.merge(result3, bobo_old[['SCADA_ID', 
-#                                       'Date Deviation Began',
-#                                       'Cause of the Deviation (Marsworx)']], 
-#                      left_on=['SCADA_ID','start_date'], right_on=['SCADA_ID', 'Date Deviation Began'], how='left')
-
 # Merge in Bobo's work
 result4 = pd.merge(result3, bobo_old[['SCADA_ID', 
                                       'Date Deviation Began',
@@ -303,7 +235,7 @@ result4 = result4[result4['start_date'] >= result4['OOOOb Scope Date']]
 result4 = result4.drop(columns=['start_date', 'Date Deviation Began'])
 
 # Print results
-result4.to_csv(r"Downloads/OOOOb Cold Deviations_2hr gap group_python1.csv")
+result4.to_csv(r"Downloads/OOOOb Cold Deviations_2hr gap group_python2.csv")
 
 
 ##############################################################################
@@ -404,94 +336,4 @@ for scadaid in result_final['SCADA_ID'].unique():
     plt.show()
     filename = sitename+'_graphic.png'
     fig.savefig('Downloads/FlareFigs/'+filename)
-    
- 
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##############################################################################
-#Example work
-##############################################################################
-
-data = {'facility': ['A', 'A', 'A', 'A', 'B', 'B', 'B'],
-        'start_time': ['2025-07-30 10:00:00', '2025-07-30 10:10:00', '2025-07-30 10:30:00',
-                       '2025-07-30 10:40:00', '2025-07-30 11:00:00', '2025-07-30 11:10:00',
-                       '2025-07-30 11:40:00'],
-        'end_time':   ['2025-07-30 10:05:00', '2025-07-30 10:15:00', '2025-07-30 10:35:00',
-                       '2025-07-30 10:45:00', '2025-07-30 11:05:00', '2025-07-30 11:20:00',
-                       '2025-07-30 11:45:00']}
-df = pd.DataFrame(data)
-
-# Convert to datetime objects
-df['start_time'] = pd.to_datetime(df['start_time'])
-df['end_time'] = pd.to_datetime(df['end_time'])
-
-# Sort the DataFrame by facility and start_time
-df = df.sort_values(by=['facility', 'start_time'])
-
-# Calculate the time difference between the current start_time and the previous end_time within each facility group
-df['time_diff'] = df['start_time'] - df.groupby('facility')['end_time'].shift()
-
-# Define the 15-minute threshold
-time_threshold = pd.Timedelta(minutes=15)
-
-# Create a new group identifier whenever the time difference is greater than the threshold
-
-
-df['group'] = (df['time_diff'] > time_threshold).cumsum()
-df['group_id'] = df.groupby('facility')['group'].cumsum(
-
-
-
-
-
-
-
-
-
-
-data = {
-    'facility_id': [1, 1, 1, 1, 2, 2, 2, 2, 2],
-    'start_time': pd.to_datetime([
-        '2023-01-01 10:00:00', '2023-01-01 10:10:00', '2023-01-01 10:30:00',
-        '2023-01-01 10:40:00', '2023-01-01 11:00:00', '2023-01-01 11:10:00',
-        '2023-01-01 11:20:00', '2023-01-01 11:50:00', '2023-01-01 12:00:00'
-    ]),
-    'end_time': pd.to_datetime([
-        '2023-01-01 10:05:00', '2023-01-01 10:15:00', '2023-01-01 10:35:00',
-        '2023-01-01 10:45:00', '2023-01-01 11:05:00', '2023-01-01 11:15:00',
-        '2023-01-01 11:25:00', '2023-01-01 11:55:00', '2023-01-01 12:05:00'
-    ]),
-    'event_data': ['A', 'B', 'C', 'D', 'X', 'Y', 'Z', 'M', 'N']
-}
-df = pd.DataFrame(data).sort_values(by=['facility_id', 'start_time']).reset_index(drop=True)
-
-# Calculate the time difference between the end of the current event and the start of the next event
-df['time_gap'] = df.groupby('facility_id')['start_time'].shift(-1) - df['end_time']
-
-# Identify the start of new groups
-# A new group starts if it's the first row for a facility or if the time gap is greater than 15 minutes
-df['new_group'] = (df['time_gap'] > pd.Timedelta(minutes=15)) | (df['facility_id'].diff() != 0)
-
-# Assign group IDs
-df['group_id'] = df.groupby('facility_id')['new_group'].cumsum()
-
-# Iterate through the grouped data
-for (facility_id, group_id), group_df in df.groupby(['facility_id', 'group_id']):
-    print(f"Facility: {facility_id}, Group: {group_id}")
-    print(group_df[['start_time', 'end_time', 'event_data']])
-    print("\n")
+  
